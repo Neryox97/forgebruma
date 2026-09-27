@@ -1,0 +1,1872 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Registre de la Forge de Bruma</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#17130F;
+    --panel:#221B15;
+    --panel-raised:#2C231B;
+    --border:#3D3024;
+    --ember:#D9622B;
+    --ember-dim:#8C4420;
+    --steel:#9FB4C7;
+    --parchment:#EDE3D0;
+    --parchment-dim:#B8A98C;
+    --success:#7DA05C;
+    --success-bg:#25301C;
+    --danger:#C1584A;
+    --danger-bg:#331E1B;
+    --warning:#D6A143;
+    --warning-bg:#332811;
+    --radius-sm:4px;
+    --radius-md:7px;
+    box-sizing:border-box;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  *{box-sizing:border-box;}
+  html{scroll-padding-top: env(safe-area-inset-top, 0px);}
+  html,body{height:100%;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--parchment);
+    font-family:'Inter', sans-serif;
+    font-size:15px;
+    line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3,.serif{font-family:'Inter', sans-serif;}
+  h1,h2,h3{margin:0 0 4px 0; font-weight:600; color:var(--parchment);}
+  a{color:var(--steel);}
+  button{font-family:inherit; cursor:pointer;}
+  input,select{font-family:inherit; font-size:14px;}
+
+  #app{display:grid; grid-template-columns:216px 1fr; min-height:100%;}
+  #sidebar{
+    background:var(--panel); border-right:1px solid var(--border);
+    padding:22px 14px; display:flex; flex-direction:column; gap:26px;
+  }
+  #brand{padding:0 8px;}
+  #brand .mark{display:flex; align-items:center; gap:9px; color:var(--ember);}
+  #brand .mark svg{flex:none;}
+  #brand h1{font-size:19px; line-height:1.15; margin:0;}
+  #brand p{margin:5px 0 0; font-size:12.5px; color:var(--parchment-dim);}
+  nav{display:flex; flex-direction:column; gap:2px;}
+  .navlink{
+    display:flex; align-items:center; gap:11px; padding:9px 10px;
+    border-radius:var(--radius-sm); border-left:2px solid transparent;
+    color:var(--parchment-dim); background:none;
+    border-top:none;border-right:none;border-bottom:none;
+    text-align:left; font-size:14.5px; width:100%;
+  }
+  .navlink svg{flex:none; opacity:.85;}
+  .navlink:hover{background:var(--panel-raised); color:var(--parchment);}
+  .navlink.active{background:var(--panel-raised); color:var(--parchment); border-left-color:var(--ember);}
+  .navlink[hidden]{display:none;}
+  #clock{margin-top:auto; padding:10px 8px 0; border-top:1px solid var(--border); font-size:12px; color:var(--parchment-dim);}
+
+  #content{padding:30px 34px 60px; max-width:1080px; overflow-x:hidden;}
+  .view{display:none;}
+  .view.active{display:block; animation:rise .25s ease;}
+  @keyframes rise{from{opacity:0; transform:translateY(4px);} to{opacity:1; transform:none;}}
+  @media (prefers-reduced-motion:reduce){.view.active{animation:none;}}
+
+  .view-head{display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:22px; gap:16px; flex-wrap:wrap;}
+  .view-head p{margin:6px 0 0; color:var(--parchment-dim); font-size:13.5px;}
+
+  .card{background:var(--panel); border:1px solid var(--border); border-radius:var(--radius-md); padding:18px 20px;}
+  .grid-stats{display:grid; grid-template-columns:repeat(auto-fit, minmax(160px,1fr)); gap:14px; margin-bottom:22px;}
+  .stat .label{font-size:12.5px; color:var(--parchment-dim); margin-bottom:8px;}
+  .stat .num{font-family:'Inter',sans-serif; font-size:28px; font-weight:600; color:var(--parchment);}
+  .stat .num small{font-size:14px; font-weight:500; color:var(--parchment-dim); margin-left:4px;}
+  .stat.ember .num{color:var(--ember);}
+  .stat.warn .num{color:var(--warning);}
+  .stat.rust .num{color:var(--danger);}
+
+  .section-title{font-size:16px; margin:30px 0 12px; padding-bottom:8px; border-bottom:1px solid var(--border);}
+  .section-title:first-child{margin-top:0;}
+
+  table{width:100%; border-collapse:collapse; font-size:13.8px;}
+  th{text-align:left; font-weight:500; color:var(--parchment-dim); font-size:12px; padding:0 10px 8px; border-bottom:1px solid var(--border);}
+  td{padding:9px 10px; border-bottom:1px solid var(--border); vertical-align:middle;}
+  tr:last-child td{border-bottom:none;}
+  tbody tr:hover{background:rgba(255,255,255,0.02);}
+  .num-cell{text-align:right; font-variant-numeric:tabular-nums;}
+
+  .badge{display:inline-block; padding:2px 9px; border-radius:20px; font-size:12px; font-weight:500;}
+  .badge.stock{background:var(--success-bg); color:var(--success);}
+  .badge.fabricable{background:var(--warning-bg); color:var(--warning);}
+  .badge.manque{background:var(--danger-bg); color:var(--danger);}
+  .badge.neutral{background:var(--panel-raised); color:var(--parchment-dim);}
+  .badge.admin{background:var(--ember-dim); color:#F4D9C6;}
+
+  .btn{background:var(--panel-raised); color:var(--parchment); border:1px solid var(--border); border-radius:var(--radius-sm); padding:8px 15px; font-size:13.5px; font-weight:500;}
+  .btn:hover{border-color:var(--parchment-dim);}
+  .btn-primary{background:var(--ember); border-color:var(--ember); color:#1A1008;}
+  .btn-primary:hover{background:#E6763F;}
+  .btn-danger{color:var(--danger); border-color:var(--danger-bg);}
+  .btn-danger:hover{background:var(--danger-bg);}
+  .btn-ghost{background:none; border-color:transparent; color:var(--parchment-dim); padding:6px 9px;}
+  .btn-ghost:hover{color:var(--parchment); background:var(--panel-raised);}
+  .btn-sm{padding:5px 11px; font-size:12.5px;}
+  .btn:disabled{opacity:.4; cursor:not-allowed;}
+
+  label{display:block; font-size:12.5px; color:var(--parchment-dim); margin-bottom:5px;}
+  input[type=text],input[type=number],select{
+    width:100%; background:var(--bg); color:var(--parchment);
+    border:1px solid var(--border); border-radius:var(--radius-sm);
+    padding:8px 10px; font-size:14px;
+  }
+  input:focus,select:focus,button:focus-visible{outline:2px solid var(--steel); outline-offset:1px;}
+  .field{margin-bottom:14px;}
+  .row{display:flex; gap:12px;}
+  .row > *{flex:1;}
+
+  .empty{color:var(--parchment-dim); font-size:13.5px; font-style:italic; padding:18px 4px;}
+
+  .progress{background:var(--bg); border:1px solid var(--border); border-radius:20px; height:8px; overflow:hidden; margin:7px 0;}
+  .progress > span{display:block; height:100%; background:var(--ember);}
+
+  .two-col{display:grid; grid-template-columns:1.2fr .8fr; gap:22px; align-items:start;}
+  @media (max-width: 880px){.two-col{grid-template-columns:1fr;}}
+
+  .item-line{display:flex; align-items:center; gap:10px; margin-bottom:8px;}
+  .item-line select{flex:2;}
+  .item-line input{flex:0 0 70px;}
+
+  .toast{
+    position:fixed; bottom:22px; right:22px; max-width:340px;
+    background:var(--panel-raised); border:1px solid var(--border); border-left:3px solid var(--ember);
+    padding:12px 16px; border-radius:var(--radius-sm); font-size:13.5px;
+    box-shadow:0 8px 24px rgba(0,0,0,.4); z-index:50; animation:rise .2s ease;
+  }
+  .toast.error{border-left-color:var(--danger);}
+  .toast.success{border-left-color:var(--success);}
+
+  .modal-overlay{position:fixed; inset:0; background:rgba(10,8,6,.65); display:flex; align-items:center; justify-content:center; z-index:100; padding:20px;}
+  .modal-box{background:var(--panel); border:1px solid var(--border); border-radius:var(--radius-md); padding:22px 24px; width:100%; max-width:380px; box-shadow:0 12px 40px rgba(0,0,0,.5);}
+
+  .hist-day-head{display:flex; justify-content:space-between; align-items:baseline; margin:22px 0 8px;}
+  .hist-day-head:first-child{margin-top:0;}
+  .hist-day-head h4{margin:0; font-family:'Inter',sans-serif; font-size:15.5px; font-weight:600;}
+  .hist-day-head span{font-size:12.5px; color:var(--parchment-dim);}
+
+  .btn-tax-pay{
+    background:var(--ember); border-color:var(--ember); color:#1A1008;
+    padding:10px 20px; font-size:14px; font-weight:600;
+  }
+  .btn-tax-pay:hover{background:#E6763F;}
+  .btn-tax-pay.is-paid{background:var(--success); border-color:var(--success); color:#132009;}
+  .btn-tax-pay.is-paid:hover{background:#8FB870;}
+
+  .btn-service{
+    background:var(--ember); border-color:var(--ember); color:#1A1008;
+    padding:10px 20px; font-size:14px; font-weight:600;
+  }
+  .btn-service:hover{background:#E6763F;}
+  .btn-service.is-active{background:var(--success); border-color:var(--success); color:#132009;}
+  .btn-service.is-active:hover{background:#8FB870;}
+
+  .mf-result:hover{background:var(--bg);}
+
+  ::-webkit-scrollbar{width:9px; height:9px;}
+  ::-webkit-scrollbar-thumb{background:var(--panel-raised); border-radius:6px;}
+
+  @media (max-width: 720px){
+    #app{grid-template-columns:1fr;}
+    #sidebar{
+      flex-direction:row; align-items:center; padding:12px 14px;
+      border-right:none; border-bottom:1px solid var(--border);
+      position:sticky; top:0; z-index:10;
+      padding-top: calc(12px + env(safe-area-inset-top, 0px));
+      overflow-x:auto;
+    }
+    #brand{display:none;}
+    nav{flex-direction:row; flex:1; justify-content:space-around;}
+    .navlink{flex-direction:column; gap:3px; font-size:10.5px; border-left:none; border-top:2px solid transparent; white-space:nowrap;}
+    .navlink.active{border-left-color:transparent; border-top-color:var(--ember);}
+    #clock{display:none;}
+    #content{padding:20px 16px 40px;}
+    .two-col{grid-template-columns:1fr;}
+  }
+</style>
+</head>
+<body>
+
+<div id="app">
+  <div id="sidebar">
+    <div id="brand">
+      <div class="mark">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M3 21L11 13M14 4L20 10L18 12L15.5 9.5L13 12L11 10L13.5 7.5L11 5L14 4Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
+        <h1>Forge de Bruma</h1>
+      </div>
+      <p>Registre de guilde &mdash; Keizaal</p>
+    </div>
+    <nav id="nav">
+      <button class="navlink" data-view="dashboard">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="8" height="8" rx="1.2" stroke="currentColor" stroke-width="1.6"/><rect x="13" y="3" width="8" height="5" rx="1.2" stroke="currentColor" stroke-width="1.6"/><rect x="13" y="10" width="8" height="11" rx="1.2" stroke="currentColor" stroke-width="1.6"/><rect x="3" y="13" width="8" height="8" rx="1.2" stroke="currentColor" stroke-width="1.6"/></svg>
+        Tableau de bord
+      </button>
+      <button class="navlink" data-view="facturation">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M6 2H16L19 5V22H6V2Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M9 9H15M9 13H15M9 17H12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+        Facturation
+      </button>
+      <button class="navlink" data-view="fabrication">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M14.5 5.5L18.5 9.5M4 20L11 13M12.5 3.5L15 6L9 12L6.5 9.5L12.5 3.5Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
+        Fabrication
+      </button>
+      <button class="navlink" data-view="stock">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M3 7L12 3L21 7L12 11L3 7Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M3 7V17L12 21M21 7V17L12 21M12 11V21" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
+        Stock
+      </button>
+      <button class="navlink" data-view="taxe">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M4 4H16L20 8V20H4V4Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M8 12H16M8 16H13" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M16 4V8H20" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
+        Taxe hebdomadaire
+      </button>
+      <button class="navlink" data-view="service-histo">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M12 8V12L14.5 14" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 8C4 4.5 7.5 2 12 2C16.5 2 20 5.5 20 10C20 14.5 16.5 18 12 18C9.5 18 7.3 16.9 5.8 15.1" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M4 18V14H8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Historique de service
+      </button>
+      <button class="navlink" data-view="admin" id="nav-admin" hidden>
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M12 3L19 6.5V11C19 15.5 16 19 12 21C8 19 5 15.5 5 11V6.5L12 3Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
+        Administration
+      </button>
+    </nav>
+    <div id="clock"></div>
+  </div>
+
+  <div id="content">
+
+    <!-- ============ DASHBOARD ============ -->
+    <section class="view" id="view-dashboard">
+      <div class="view-head">
+        <div><h2>Tableau de bord</h2><p>Vue d'ensemble de l'activité de la forge</p></div>
+      </div>
+
+      <div class="card" style="margin-bottom:22px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:14px;">
+        <div>
+          <h3 style="font-size:15px; margin-bottom:2px;">Statut de service</h3>
+          <p style="font-size:12.5px; color:var(--parchment-dim); margin:0;" id="svc-status-text">Hors service</p>
+        </div>
+        <button class="btn btn-service" id="svc-toggle">Se mettre en service</button>
+      </div>
+      <div id="svc-active-list" style="margin-bottom:22px;"></div>
+
+      <div class="grid-stats">
+        <div class="card stat"><div class="label">Ventes aujourd'hui</div><div class="num" id="stat-ventes">&mdash;</div></div>
+        <div class="card stat ember"><div class="label">Septims gagnés</div><div class="num" id="stat-septims">&mdash;</div></div>
+        <div class="card stat rust"><div class="label">Rachats aujourd'hui</div><div class="num" id="stat-rachats">&mdash;</div></div>
+        <div class="card stat warn"><div class="label">Articles à surveiller</div><div class="num" id="stat-alertes">&mdash;</div></div>
+        <div class="card stat"><div class="label">Requêtes en cours</div><div class="num" id="stat-requetes">&mdash;</div></div>
+      </div>
+      <h3 class="section-title">Stock à surveiller</h3>
+      <div id="dash-alerts"></div>
+    </section>
+
+    <!-- ============ FACTURATION ============ -->
+    <section class="view" id="view-facturation">
+      <div class="view-head">
+        <div><h2>Facturation</h2><p>Établir une facture pour un client</p></div>
+      </div>
+      <div class="two-col">
+        <div class="card">
+          <div class="row">
+            <div class="field">
+              <label for="fa-forgeron">Vendu par</label>
+              <input type="text" id="fa-forgeron" placeholder="Nom du forgeron">
+            </div>
+            <div class="field">
+              <label for="fa-client">Nom du client (facultatif)</label>
+              <input type="text" id="fa-client" placeholder="Ex. Sindri l'aventurier">
+            </div>
+          </div>
+          <div class="field">
+            <label for="fa-tarif">Tarif privilège</label>
+            <select id="fa-tarif">
+              <option value="">Aucun tarif</option>
+              <option value="garde">Garde du Comté (-10%)</option>
+              <option value="citoyen">Citoyen de Bruma (-5%)</option>
+            </select>
+          </div>
+          <p style="margin:-6px 0 14px; font-size:12px;"><button type="button" class="btn-ghost btn-sm" id="fa-change-identity" style="padding:2px 0; text-decoration:underline;">Changer mon identité enregistrée</button></p>
+
+          <div class="field">
+            <label>Ajouter un produit</label>
+            <div class="item-line">
+              <select id="fa-item"></select>
+              <input type="number" id="fa-qty" min="1" value="1">
+              <button class="btn" id="fa-add">Ajouter</button>
+            </div>
+            <div id="fa-recipe-preview" style="font-size:12.5px; color:var(--parchment-dim); margin-top:2px;"></div>
+          </div>
+
+          <table id="fa-table" style="margin-top:14px;">
+            <thead><tr><th>Produit</th><th class="num-cell">Qté</th><th class="num-cell">Sous-total</th><th>Statut</th><th></th></tr></thead>
+            <tbody id="fa-lines"></tbody>
+          </table>
+          <div class="empty" id="fa-empty">Aucun produit ajouté à la facture.</div>
+
+          <div style="margin-top:18px; padding-top:14px; border-top:1px solid var(--border);">
+            <div id="fa-discount-line" style="font-size:12.5px; color:var(--parchment-dim); margin-bottom:6px; display:none;"></div>
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <div class="serif" style="font-size:20px;">Total : <strong id="fa-total" style="color:var(--ember);">0</strong> septims</div>
+              <button class="btn btn-primary" id="fa-validate" disabled>Valider la facture</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3 style="font-size:14.5px; margin-bottom:10px;">Légende des statuts</h3>
+          <p style="font-size:13px; color:var(--parchment-dim); margin:0 0 10px;"><span class="badge stock">Stock</span> l'objet est déjà forgé et disponible.</p>
+          <p style="font-size:13px; color:var(--parchment-dim); margin:0 0 10px;"><span class="badge fabricable">Fabricable</span> l'objet sera forgé sur commande, les matériaux nécessaires sont déduits du stock.</p>
+          <p style="font-size:13px; color:var(--parchment-dim); margin:0;"><span class="badge manque">Manque</span> matériaux insuffisants pour honorer la commande &mdash; à fabriquer plus tard depuis l'onglet Fabrication.</p>
+        </div>
+      </div>
+
+      <h3 class="section-title">Historique des ventes</h3>
+      <p style="margin:-6px 0 14px; font-size:13px; color:var(--parchment-dim);">Détail des ventes, ligne par ligne, regroupées par jour.</p>
+      <div id="hist-body"></div>
+    </section>
+
+    <!-- ============ FABRICATION ============ -->
+    <section class="view" id="view-fabrication">
+      <div class="view-head">
+        <div><h2>Fabrication</h2><p>Forger des objets hors commande et suivre les requêtes de guilde</p></div>
+      </div>
+
+      <div class="two-col">
+        <div class="card">
+          <h3 style="font-size:15px;">Fabriquer</h3>
+          <p style="font-size:13px; color:var(--parchment-dim); margin-top:2px;">Produit un objet ou transforme une matière, en déduisant les ressources nécessaires du stock.</p>
+          <div class="row" style="margin-top:14px;">
+            <div class="field">
+              <label for="fab-item">Objet à fabriquer</label>
+              <select id="fab-item"></select>
+            </div>
+            <div class="field" style="flex:0 0 100px;">
+              <label for="fab-qty">Quantité</label>
+              <input type="number" id="fab-qty" min="1" value="1">
+            </div>
+          </div>
+          <div id="fab-recipe-preview" style="font-size:12.5px; color:var(--parchment-dim); margin-bottom:12px;"></div>
+          <button class="btn btn-primary" id="fab-craft">Fabriquer</button>
+        </div>
+
+        <div class="card">
+          <h3 style="font-size:15px;">Nouvelle requête</h3>
+          <p style="font-size:13px; color:var(--parchment-dim); margin-top:2px;">Ouvre un objectif de production que tout le monde peut aider à remplir.</p>
+          <div class="field" style="margin-top:14px;">
+            <label for="req-item">Ressource visée</label>
+            <select id="req-item"></select>
+          </div>
+          <div class="row">
+            <div class="field">
+              <label for="req-target">Quantité visée</label>
+              <input type="number" id="req-target" min="1" value="10">
+            </div>
+            <div class="field">
+              <label for="req-title">Titre (facultatif)</label>
+              <input type="text" id="req-title" placeholder="Ex. Réserve de lingots">
+            </div>
+          </div>
+          <button class="btn" id="req-create">Créer la requête</button>
+        </div>
+      </div>
+
+      <h3 class="section-title">Requêtes de la forge</h3>
+      <div id="fab-requests"></div>
+    </section>
+
+    <!-- ============ STOCK ============ -->
+    <section class="view" id="view-stock">
+      <div class="view-head">
+        <div><h2>Stock</h2><p>Quantités disponibles &mdash; ajustement et rachat de matériaux ou d'équipements</p></div>
+        <button class="btn btn-primary" id="stock-goto-fab">Fabrication</button>
+      </div>
+      <h3 class="section-title">Matières premières</h3>
+      <div id="stock-materiau"></div>
+      <h3 class="section-title">Matières transformées</h3>
+      <div id="stock-transforme"></div>
+      <h3 class="section-title">Armes &amp; armures</h3>
+      <div id="stock-objet"></div>
+    </section>
+
+    <!-- ============ TAXE HEBDOMADAIRE ============ -->
+    <section class="view" id="view-taxe">
+      <div class="view-head">
+        <div><h2>Taxe hebdomadaire</h2><p>Patente et impôt progressif dus au Comté de Bruma</p></div>
+      </div>
+
+      <div style="display:flex; align-items:center; gap:10px; margin-bottom:20px;">
+        <button class="btn btn-sm" id="tx-prev">&larr; Semaine préc.</button>
+        <div class="serif" id="tx-week-label" style="font-size:15px; min-width:220px; text-align:center;">&mdash;</div>
+        <button class="btn btn-sm" id="tx-next">Semaine suiv. &rarr;</button>
+        <button class="btn btn-sm" id="tx-today" style="margin-left:auto;">Semaine actuelle</button>
+      </div>
+
+      <h3 class="section-title">I &middot; Patente</h3>
+      <div class="card">
+        <div class="row" style="align-items:flex-end;">
+          <div class="field">
+            <label for="tx-secteur">Secteur d'activité</label>
+            <select id="tx-secteur">
+              <option value="terre">Terre (Pâtres &amp; Paysans libres) — 0 Septim</option>
+              <option value="recolte">Récolte (Mineurs, Chasseurs/Cueilleurs, Charbonniers) — 200 Septims</option>
+              <option value="divertissement">Divertissement (Taverniers &amp; Aubergistes) — 220 Septims</option>
+              <option value="artisanat">Artisanat (Forgerons, Couturiers, Alchimistes) — 220 Septims</option>
+            </select>
+          </div>
+          <div class="field" style="flex:0 0 160px;">
+            <div class="label" style="margin-bottom:5px;">Patente due</div>
+            <div class="serif" id="tx-patente-amount" style="font-size:22px; color:var(--ember);">0</div>
+          </div>
+        </div>
+        <p style="font-size:12px; color:var(--parchment-dim); margin:0;">Une seule patente est due par exploitation, quel que soit le nombre d'employés.</p>
+      </div>
+
+      <h3 class="section-title">II &middot; Impôt progressif sur le bénéfice</h3>
+      <div class="card">
+        <div class="row">
+          <div class="stat" style="flex:1;"><div class="label">Ventes de la semaine</div><div class="num" style="font-size:20px;" id="tx-ventes">0</div></div>
+          <div class="stat" style="flex:1;"><div class="label">Rachats de la semaine</div><div class="num" style="font-size:20px;" id="tx-rachats">0</div></div>
+          <div class="stat" style="flex:1;"><div class="label">Bénéfice retenu</div><div class="num ember" style="font-size:20px;" id="tx-benefice">0</div></div>
+        </div>
+        <div class="field" style="display:flex; align-items:center; gap:8px; margin:6px 0 14px;">
+          <input type="checkbox" id="tx-override-toggle" style="width:auto;">
+          <label for="tx-override-toggle" style="margin:0;">Corriger manuellement le bénéfice retenu pour le calcul</label>
+        </div>
+        <div class="field" id="tx-override-wrap" style="display:none; max-width:220px;">
+          <label for="tx-override-value">Bénéfice corrigé (Septims)</label>
+          <input type="number" id="tx-override-value" min="0" value="0">
+        </div>
+
+        <table style="margin-top:6px;">
+          <thead><tr><th>Tranche</th><th class="num-cell">Taux</th><th class="num-cell">Part imposable</th><th class="num-cell">Impôt</th></tr></thead>
+          <tbody id="tx-brackets"></tbody>
+        </table>
+        <div style="text-align:right; margin-top:10px; font-size:15px;">Total impôt : <strong id="tx-impot-total" class="serif" style="color:var(--ember);">0</strong> septims</div>
+      </div>
+
+      <h3 class="section-title">III &middot; Réductions fiscales</h3>
+      <div class="card">
+        <p style="font-size:12.5px; color:var(--parchment-dim); margin-top:0;">Deux leviers maximum par semaine. Les remises s'appliquent en cascade, sur le solde restant.</p>
+
+        <div style="display:flex; align-items:flex-start; gap:10px; padding:10px 0; border-bottom:1px solid var(--border);">
+          <input type="checkbox" id="tx-lever-sponsor" style="width:auto; margin-top:3px;">
+          <div style="flex:1;"><label for="tx-lever-sponsor" style="margin:0; color:var(--parchment);">Sponsoriser un événement local <span style="color:var(--parchment-dim);">(-5%)</span></label>
+          <div style="font-size:12px; color:var(--parchment-dim);">Financement ou logistique d'un événement local (banquet, tournoi, prime, animation...).</div></div>
+        </div>
+        <div style="display:flex; align-items:flex-start; gap:10px; padding:10px 0; border-bottom:1px solid var(--border);">
+          <input type="checkbox" id="tx-lever-donation" style="width:auto; margin-top:3px;">
+          <div style="flex:1;"><label for="tx-lever-donation" style="margin:0; color:var(--parchment);">Donation de marchandises à la Garde Comtale <span style="color:var(--parchment-dim);">(-15%)</span></label>
+          <div style="font-size:12px; color:var(--parchment-dim);">Lot de matériel ou de consommable fourni en quantité à la Garde.</div></div>
+        </div>
+        <div style="display:flex; align-items:flex-start; gap:10px; padding:10px 0;">
+          <span class="badge admin" id="tx-lever-tarif-badge" style="margin-top:3px;">Inactif</span>
+          <div style="flex:1;"><span style="color:var(--parchment);">Tarif Privilège <span style="color:var(--parchment-dim);">(-10%)</span></span>
+          <div style="font-size:12px; color:var(--parchment-dim);">Détecté automatiquement si une facture de la semaine applique le tarif Garde ou Citoyen.</div></div>
+        </div>
+
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:16px; padding-top:12px; border-top:1px solid var(--border);">
+          <span style="font-size:13px; color:var(--parchment-dim);">Réduction totale appliquée</span>
+          <strong id="tx-reduction-pct">0%</strong>
+        </div>
+      </div>
+
+      <h3 class="section-title">Total à régler</h3>
+      <div class="card">
+        <table>
+          <tbody>
+            <tr><td>Patente</td><td class="num-cell" id="tx-sum-patente">0</td></tr>
+            <tr><td>Impôt progressif</td><td class="num-cell" id="tx-sum-impot">0</td></tr>
+            <tr><td>Sous-total</td><td class="num-cell" id="tx-sum-subtotal">0</td></tr>
+            <tr><td>Réduction</td><td class="num-cell" id="tx-sum-reduction" style="color:var(--success);">0</td></tr>
+            <tr><td><strong>Total dû</strong></td><td class="num-cell"><strong id="tx-sum-total" style="color:var(--ember); font-size:17px;">0</strong></td></tr>
+          </tbody>
+        </table>
+        <div style="margin-top:16px;">
+          <button class="btn btn-tax-pay" id="tx-paid-btn" type="button">Taxe réglée</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ HISTORIQUE DE SERVICE ============ -->
+    <section class="view" id="view-service-histo">
+      <div class="view-head">
+        <div><h2>Historique de service</h2><p>Récapitulatifs de fin de service, par forgeron</p></div>
+      </div>
+      <div id="svc-histo-body"></div>
+    </section>
+
+    <!-- ============ ADMINISTRATION ============ -->
+    <section class="view" id="view-admin">
+      <div class="view-head">
+        <div><h2>Administration</h2><p>Catalogue, recettes et prix &mdash; réservé aux administrateurs</p></div>
+        <button class="btn btn-primary" id="admin-new">Nouvel article</button>
+      </div>
+
+      <div class="card" style="margin-bottom:22px;">
+        <h3 style="font-size:15px;">Maîtres Forgerons</h3>
+        <p style="font-size:12.5px; color:var(--parchment-dim); margin-top:2px;">Ces personnes peuvent, comme les administrateurs, corriger manuellement les quantités en stock.</p>
+        <div class="field" style="max-width:320px; position:relative;">
+          <label for="mf-search">Ajouter une personne</label>
+          <input type="text" id="mf-search" placeholder="Nom...">
+          <div id="mf-results" style="position:absolute; z-index:5; background:var(--panel-raised); border:1px solid var(--border); border-radius:var(--radius-sm); width:100%; display:none; max-height:180px; overflow:auto;"></div>
+        </div>
+        <div id="mf-list" style="margin-top:10px; max-width:320px;"></div>
+      </div>
+
+      <div id="admin-form-wrap" class="card" style="display:none; margin-bottom:22px;">
+        <h3 id="admin-form-title" style="font-size:15px;">Nouvel article</h3>
+        <div class="row">
+          <div class="field"><label for="si-name">Nom</label><input type="text" id="si-name"></div>
+          <div class="field" style="flex:0 0 190px;">
+            <label for="si-category">Catégorie</label>
+            <select id="si-category">
+              <option value="materiau">Matière première</option>
+              <option value="transforme">Matière transformée</option>
+              <option value="objet">Objet (arme / armure)</option>
+            </select>
+          </div>
+        </div>
+        <div class="row">
+          <div class="field" style="flex:0 0 140px;"><label for="si-unit">Unité</label><input type="text" id="si-unit" value="unité"></div>
+          <div class="field" style="flex:0 0 150px;">
+            <label for="si-vendable">Vendable en boutique</label>
+            <select id="si-vendable"><option value="0">Non</option><option value="1">Oui</option></select>
+          </div>
+          <div class="field" id="si-price-wrap" style="flex:0 0 150px; display:none;">
+            <label for="si-price">Prix de vente</label><input type="number" id="si-price" min="0" value="0">
+          </div>
+          <div class="field" style="flex:0 0 150px;">
+            <label for="si-buyprice">Prix de rachat</label><input type="number" id="si-buyprice" min="0" value="0">
+          </div>
+        </div>
+
+        <label>Recette (facultatif)</label>
+        <div id="si-recipe-rows"></div>
+        <button class="btn btn-sm" id="si-recipe-add" type="button" style="margin-bottom:16px;">+ Ajouter un ingrédient</button>
+
+        <div style="display:flex; gap:10px;">
+          <button class="btn btn-primary" id="si-save">Enregistrer</button>
+          <button class="btn" id="si-cancel">Annuler</button>
+        </div>
+      </div>
+
+      <h3 class="section-title">Matières premières</h3>
+      <div id="admin-materiau"></div>
+      <h3 class="section-title">Matières transformées</h3>
+      <div id="admin-transforme"></div>
+      <h3 class="section-title">Armes &amp; armures</h3>
+      <div id="admin-objet"></div>
+    </section>
+
+  </div>
+</div>
+
+<div id="identity-modal" class="modal-overlay" style="display:none;">
+  <div class="modal-box">
+    <h3 style="font-size:16px;">Qui es-tu, forgeron ?</h3>
+    <p style="font-size:13px; color:var(--parchment-dim); margin-top:2px;">Indique ton nom RP : il sera mentionné automatiquement sur les factures que tu établis, sur cet appareil.</p>
+    <div class="field" style="margin-top:14px;">
+      <label for="identity-name">Nom RP</label>
+      <input type="text" id="identity-name" placeholder="Ex. Borkul le Rouge">
+    </div>
+    <div style="display:flex; gap:10px; justify-content:flex-end;">
+      <button class="btn" id="identity-skip">Plus tard</button>
+      <button class="btn btn-primary" id="identity-save">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<div id="generic-modal" class="modal-overlay" style="display:none;">
+  <div class="modal-box" id="generic-modal-box"></div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ---------------- helpers ---------------- */
+  function esc(s){
+    return String(s==null?'':s).replace(/[&<>"']/g, function(c){
+      return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+    });
+  }
+  function slugify(s){
+    return String(s).toLowerCase()
+      .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+      .replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'') || 'article';
+  }
+  function todayKey(d){
+    d = d || new Date();
+    return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+  }
+  function getMonday(d){
+    var x = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+    var day = x.getDay(); // 0=dim
+    var diff = day===0 ? -6 : 1-day;
+    x.setDate(x.getDate()+diff);
+    return x;
+  }
+  function addDays(d, n){ var x = new Date(d); x.setDate(x.getDate()+n); return x; }
+  function weekKeyFor(monday){ return todayKey(monday); }
+  function formatWeekLabel(monday){
+    var sunday = addDays(monday,6);
+    var opts = {day:'numeric', month:'long'};
+    return 'Semaine du '+monday.toLocaleDateString('fr-FR',opts)+' au '+sunday.toLocaleDateString('fr-FR',opts);
+  }
+  var TAX_BRACKETS = [
+    {min:0, max:500, rate:0},
+    {min:500, max:1500, rate:0.10},
+    {min:1500, max:2500, rate:0.15},
+    {min:2500, max:4000, rate:0.25},
+    {min:4000, max:Infinity, rate:0.35}
+  ];
+  var PATENTE_RATES = {terre:0, recolte:200, divertissement:220, artisanat:220};
+  function computeProgressiveTax(benefice){
+    var rows = []; var total = 0;
+    TAX_BRACKETS.forEach(function(b){
+      var taxable = Math.max(0, Math.min(benefice, b.max===Infinity?benefice:b.max) - b.min);
+      var amount = Math.round(taxable * b.rate);
+      total += amount;
+      rows.push({min:b.min, max:b.max, rate:b.rate, taxable:taxable, amount:amount});
+    });
+    return {rows:rows, total:total};
+  }
+  function fmtNum(n){ return new Intl.NumberFormat('fr-FR').format(Math.round((n||0)*100)/100); }
+  function toast(msg, kind){
+    var t = document.createElement('div');
+    t.className = 'toast' + (kind ? ' '+kind : '');
+    t.textContent = msg;
+    document.body.appendChild(t);
+    setTimeout(function(){ t.remove(); }, 3600);
+  }
+  function showModal(html){
+    document.getElementById('generic-modal-box').innerHTML = html;
+    document.getElementById('generic-modal').style.display = 'flex';
+  }
+  function hideModal(){ document.getElementById('generic-modal').style.display = 'none'; }
+
+  function askNumber(title, message, defaultVal){
+    return new Promise(function(resolve){
+      showModal(
+        '<h3 style="font-size:16px;">'+esc(title)+'</h3>'+
+        (message ? '<p style="font-size:13px; color:var(--parchment-dim); margin-top:2px;">'+esc(message)+'</p>' : '')+
+        '<div class="field" style="margin-top:14px;"><input type="number" id="generic-modal-input" value="'+esc(defaultVal!=null?defaultVal:0)+'"></div>'+
+        '<div style="display:flex; gap:10px; justify-content:flex-end;">'+
+          '<button class="btn" id="generic-modal-cancel">Annuler</button>'+
+          '<button class="btn btn-primary" id="generic-modal-ok">Valider</button>'+
+        '</div>'
+      );
+      var input = document.getElementById('generic-modal-input');
+      var done = false;
+      function finish(val){ if (done) return; done = true; hideModal(); resolve(val); }
+      document.getElementById('generic-modal-cancel').onclick = function(){ finish(null); };
+      document.getElementById('generic-modal-ok').onclick = function(){
+        var v = parseFloat(input.value);
+        finish(isNaN(v) ? null : v);
+      };
+      input.addEventListener('keydown', function(e){ if (e.key==='Enter') document.getElementById('generic-modal-ok').click(); });
+      setTimeout(function(){ input.focus(); input.select(); }, 30);
+    });
+  }
+
+  function askConfirm(title, message){
+    return new Promise(function(resolve){
+      showModal(
+        '<h3 style="font-size:16px;">'+esc(title)+'</h3>'+
+        '<p style="font-size:13px; color:var(--parchment-dim); margin-top:2px; white-space:pre-line;">'+esc(message)+'</p>'+
+        '<div style="display:flex; gap:10px; justify-content:flex-end; margin-top:16px;">'+
+          '<button class="btn" id="generic-modal-cancel">Annuler</button>'+
+          '<button class="btn btn-primary" id="generic-modal-ok">Confirmer</button>'+
+        '</div>'
+      );
+      var done = false;
+      function finish(val){ if (done) return; done = true; hideModal(); resolve(val); }
+      document.getElementById('generic-modal-cancel').onclick = function(){ finish(false); };
+      document.getElementById('generic-modal-ok').onclick = function(){ finish(true); };
+    });
+  }
+
+  var CATS = {materiau:'Matière première', transforme:'Matière transformée', objet:'Objet'};
+
+  /* ---------------- state ---------------- */
+  var catalog = new Map();     // id -> {name,category,unit,vendable,sellPrice,buyPrice,recipe}
+  var stockQty = new Map();    // id -> quantity
+  var invoicesToday = [];
+  var allInvoices = [];
+  var achatsToday = [];
+  var allAchats = [];
+  var requests = new Map();
+  var roles = new Map();       // uid -> {addedAt}
+  var sessions = new Map();    // key -> {forgeron, active, startedAt, uid}
+  var serviceLogs = [];        // ended-service recap records
+  var mySessionActive = false;
+  var mySessionStart = null;
+  var db = null;
+  var seeded = false;
+  var currentUid = null;
+  var currentForgeron = '';
+  var isAdmin = false;
+  var currentWeekMonday = getMonday(new Date());
+  var taxData = {sector:'artisanat', sponsor:false, donation:false, overrideOn:false, overrideValue:0, paid:false};
+  var taxUnsub = null;
+
+  var currentInvoiceLines = []; // {itemId, qty}
+  var editingItemId = null;
+
+  function getItem(id){
+    var c = catalog.get(id);
+    if (!c) return null;
+    return Object.assign({}, c, {quantity: stockQty.get(id)||0});
+  }
+  function allItemsArr(){
+    return Array.from(catalog.keys()).map(function(id){ return Object.assign({id:id}, getItem(id)); });
+  }
+
+  /* ---------------- default catalogue ---------------- */
+  var DEFAULT_ITEMS = [
+    {id:'minerai-fer', name:'Minerai de fer', category:'materiau', unit:'morceau', quantity:30, vendable:false, buyPrice:2},
+    {id:'minerai-argent', name:"Minerai d'argent", category:'materiau', unit:'morceau', quantity:10, vendable:false, buyPrice:4},
+    {id:'minerai-or', name:"Minerai d'or", category:'materiau', unit:'morceau', quantity:5, vendable:false, buyPrice:6},
+    {id:'cuir-brut', name:'Cuir brut', category:'materiau', unit:'peau', quantity:15, vendable:false, buyPrice:3},
+    {id:'bois', name:'Bois', category:'materiau', unit:'bûche', quantity:20, vendable:false, buyPrice:1},
+    {id:'charbon', name:'Charbon de bois', category:'materiau', unit:'sac', quantity:25, vendable:false, buyPrice:2},
+
+    {id:'lingot-fer', name:'Lingot de fer', category:'transforme', unit:'lingot', quantity:10, vendable:false, buyPrice:6,
+      recipe:[{itemId:'minerai-fer',qty:2},{itemId:'charbon',qty:1}]},
+    {id:'lingot-acier', name:"Lingot d'acier", category:'transforme', unit:'lingot', quantity:5, vendable:false, buyPrice:12,
+      recipe:[{itemId:'lingot-fer',qty:1},{itemId:'charbon',qty:1}]},
+    {id:'lingot-argent', name:"Lingot d'argent", category:'transforme', unit:'lingot', quantity:4, vendable:false, buyPrice:10,
+      recipe:[{itemId:'minerai-argent',qty:2},{itemId:'charbon',qty:1}]},
+    {id:'lingot-or', name:"Lingot d'or", category:'transforme', unit:'lingot', quantity:2, vendable:false, buyPrice:16,
+      recipe:[{itemId:'minerai-or',qty:2},{itemId:'charbon',qty:1}]},
+    {id:'cuir-tanne', name:'Cuir tanné', category:'transforme', unit:'peau', quantity:6, vendable:false, buyPrice:5,
+      recipe:[{itemId:'cuir-brut',qty:1}]},
+
+    {id:'epee-fer', name:'Épée en fer', category:'objet', unit:'unité', quantity:2, vendable:true, sellPrice:50, buyPrice:20,
+      recipe:[{itemId:'lingot-fer',qty:2}]},
+    {id:'epee-acier', name:'Épée en acier', category:'objet', unit:'unité', quantity:1, vendable:true, sellPrice:90, buyPrice:35,
+      recipe:[{itemId:'lingot-acier',qty:2}]},
+    {id:'dague-fer', name:'Dague en fer', category:'objet', unit:'unité', quantity:3, vendable:true, sellPrice:25, buyPrice:10,
+      recipe:[{itemId:'lingot-fer',qty:1}]},
+    {id:'armure-fer', name:'Armure de fer', category:'objet', unit:'unité', quantity:1, vendable:true, sellPrice:150, buyPrice:60,
+      recipe:[{itemId:'lingot-fer',qty:5},{itemId:'cuir-tanne',qty:2}]},
+    {id:'armure-acier', name:"Armure d'acier", category:'objet', unit:'unité', quantity:0, vendable:true, sellPrice:220, buyPrice:90,
+      recipe:[{itemId:'lingot-acier',qty:5},{itemId:'cuir-tanne',qty:2}]},
+    {id:'bouclier-fer', name:'Bouclier en fer', category:'objet', unit:'unité', quantity:2, vendable:true, sellPrice:60, buyPrice:25,
+      recipe:[{itemId:'lingot-fer',qty:3}]}
+  ];
+
+  /* ---------------- db init ---------------- */
+  async function initDb(){
+    if (!window.claude || !window.claude.use){ toast('Stockage indisponible dans cet aperçu.', 'error'); return; }
+    db = await window.claude.use('db');
+    if (!db){ toast('Le stockage partagé est indisponible ici.', 'error'); return; }
+
+    var itemsCol = db.collection('items');
+    var snap = await itemsCol.get();
+    if (snap.empty && !seeded){
+      seeded = true;
+      for (var i=0;i<DEFAULT_ITEMS.length;i++){
+        var it = DEFAULT_ITEMS[i];
+        var def = {name:it.name, category:it.category, unit:it.unit, vendable:!!it.vendable, sellPrice:it.sellPrice||0, buyPrice:it.buyPrice||0, recipe:it.recipe||[]};
+        try{ await itemsCol.doc(it.id).set(def); } catch(e){ /* not admin in this view: ignore */ }
+        try{ await db.collection('stock').doc(it.id).set({quantity: it.quantity||0}); } catch(e){}
+      }
+    }
+
+    itemsCol.onSnapshot(function(qs){
+      catalog.clear();
+      qs.docs.forEach(function(d){ catalog.set(d.id, d.data()); });
+      renderAll();
+    }, function(e){ toast('Erreur de lecture du catalogue : '+e.message, 'error'); });
+
+    db.collection('stock').onSnapshot(function(qs){
+      stockQty.clear();
+      qs.docs.forEach(function(d){ stockQty.set(d.id, (d.data()||{}).quantity||0); });
+      renderAll();
+    }, function(e){ toast('Erreur de lecture du stock : '+e.message, 'error'); });
+
+    db.collection('invoices').where('dateKey','==', todayKey()).onSnapshot(function(qs){
+      invoicesToday = qs.docs.map(function(d){ return Object.assign({id:d.id}, d.data()); });
+      renderDashboard();
+    }, function(){});
+
+    db.collection('invoices').orderBy('createdAt','desc').limit(300).onSnapshot(function(qs){
+      allInvoices = qs.docs.map(function(d){ return Object.assign({id:d.id}, d.data()); });
+      renderHistorique();
+      renderTaxe();
+    }, function(){});
+
+    db.collection('achats').where('dateKey','==', todayKey()).onSnapshot(function(qs){
+      achatsToday = qs.docs.map(function(d){ return Object.assign({id:d.id}, d.data()); });
+      renderDashboard();
+    }, function(){});
+
+    db.collection('achats').orderBy('createdAt','desc').limit(300).onSnapshot(function(qs){
+      allAchats = qs.docs.map(function(d){ return Object.assign({id:d.id}, d.data()); });
+      renderTaxe();
+    }, function(){});
+
+    subscribeTaxWeek();
+
+    db.collection('requests').orderBy('createdAt','desc').limit(30).onSnapshot(function(qs){
+      requests.clear();
+      qs.docs.forEach(function(d){ requests.set(d.id, d.data()); });
+      renderFabrication();
+    }, function(){});
+
+    db.collection('roles').onSnapshot(function(qs){
+      roles.clear();
+      qs.docs.forEach(function(d){ roles.set(d.id, d.data()); });
+      renderMaitresForgerons();
+      renderStock();
+    }, function(){});
+
+    db.collection('sessions').onSnapshot(function(qs){
+      sessions.clear();
+      qs.docs.forEach(function(d){ sessions.set(d.id, d.data()); });
+      renderService();
+    }, function(){});
+
+    db.collection('service_logs').orderBy('endedAt','desc').limit(300).onSnapshot(function(qs){
+      serviceLogs = qs.docs.map(function(d){ return Object.assign({id:d.id}, d.data()); });
+      renderServiceHistory();
+    }, function(){});
+
+    await loadIdentity();
+    await loadAdminStatus();
+    renderStock();
+  }
+
+  function subscribeTaxWeek(){
+    if (!db) return;
+    if (taxUnsub) { taxUnsub(); taxUnsub = null; }
+    var key = weekKeyFor(currentWeekMonday);
+    document.getElementById('tx-week-label').textContent = formatWeekLabel(currentWeekMonday);
+    taxUnsub = db.doc('taxes/'+key).onSnapshot(function(snap){
+      var d = snap.exists ? snap.data() : {};
+      taxData = {
+        sector: d.sector || 'artisanat',
+        sponsor: !!d.sponsor,
+        donation: !!d.donation,
+        overrideOn: !!d.overrideOn,
+        overrideValue: d.overrideValue || 0,
+        paid: !!d.paid
+      };
+      renderTaxe();
+    }, function(e){ toast('Erreur taxe : '+e.message, 'error'); });
+  }
+  async function saveTaxField(patch){
+    if (!db) return;
+    var key = weekKeyFor(currentWeekMonday);
+    try{ await db.doc('taxes/'+key).set(Object.assign({}, taxData, patch)); }
+    catch(e){ toast('Échec : '+e.message, 'error'); }
+  }
+
+  var userCapCache = null;
+  async function getUserCap(){
+    if (userCapCache) return userCapCache;
+    try{ userCapCache = window.claude && window.claude.use ? await window.claude.use('user') : null; }
+    catch(e){ userCapCache = null; }
+    return userCapCache;
+  }
+  function canAdjustStock(){ return isAdmin || (!!currentUid && roles.has(currentUid)); }
+
+  async function renderMaitresForgerons(){
+    var listEl = document.getElementById('mf-list');
+    if (!listEl) return;
+    var ids = Array.from(roles.keys());
+    if (!ids.length){ listEl.innerHTML = '<div class="empty">Aucun maître forgeron désigné.</div>'; return; }
+    var userCap = await getUserCap();
+    var profiles = (userCap && userCap.profiles) ? await userCap.profiles(ids) : {};
+    listEl.innerHTML = ids.map(function(id){
+      var p = profiles[id];
+      var name = (p && p.name) ? p.name : 'Utilisateur inconnu';
+      return '<div style="display:flex; justify-content:space-between; align-items:center; padding:6px 0; border-bottom:1px solid var(--border); font-size:13.5px;">'+
+        '<span>'+esc(name)+'</span>'+
+        '<button class="btn-ghost btn-sm" data-remove-mf="'+esc(id)+'">Retirer</button></div>';
+    }).join('');
+  }
+
+  /* ---------------- identity ---------------- */
+  async function loadIdentity(){
+    var userCap = null;
+    try{ userCap = window.claude && window.claude.use ? await window.claude.use('user') : null; }
+    catch(e){ userCap = null; }
+    if (userCap && userCap.id){
+      try{ currentUid = await userCap.id(); } catch(e){ currentUid = null; }
+    }
+    if (currentUid){
+      try{
+        var snap = await db.doc('data/users/'+currentUid+'/profile').get();
+        if (snap.exists && snap.data().forgeName) currentForgeron = snap.data().forgeName;
+      } catch(e){ /* ignore */ }
+    }
+    if (!currentForgeron){
+      try{ currentForgeron = localStorage.getItem('forge-name') || ''; } catch(e){}
+    }
+    updateForgeronUI();
+    if (!currentForgeron) openIdentityModal();
+    renderService();
+  }
+
+  async function loadAdminStatus(){
+    var userCap = null;
+    try{ userCap = window.claude && window.claude.use ? await window.claude.use('user') : null; }
+    catch(e){ userCap = null; }
+    if (userCap && userCap.canEdit){
+      try{ isAdmin = !!(await userCap.canEdit()); } catch(e){ isAdmin = false; }
+    }
+    document.getElementById('nav-admin').hidden = !isAdmin;
+    if (!isAdmin){
+      var activeAdmin = document.getElementById('view-admin').classList.contains('active');
+      if (activeAdmin) switchView('dashboard');
+    }
+    renderAdmin();
+  }
+
+  function updateForgeronUI(){
+    var input = document.getElementById('fa-forgeron');
+    if (input && !input.value) input.value = currentForgeron;
+  }
+  function openIdentityModal(){
+    document.getElementById('identity-name').value = currentForgeron || '';
+    document.getElementById('identity-modal').style.display = 'flex';
+  }
+  function closeIdentityModal(){ document.getElementById('identity-modal').style.display = 'none'; }
+  async function saveIdentity(){
+    var name = document.getElementById('identity-name').value.trim();
+    if (!name){ toast('Indique un nom.', 'error'); return; }
+    currentForgeron = name;
+    try{ localStorage.setItem('forge-name', name); } catch(e){}
+    if (currentUid && db){
+      try{ await db.doc('data/users/'+currentUid+'/profile').set({forgeName:name}); } catch(e){}
+    }
+    var input = document.getElementById('fa-forgeron');
+    if (input) input.value = name;
+    closeIdentityModal();
+    toast('Identité enregistrée.', 'success');
+    renderService();
+  }
+
+  /* ---------------- craft logic ---------------- */
+  function computeNeeds(itemId, qty){
+    var item = getItem(itemId);
+    var needs = {};
+    if (!item || !item.recipe || !item.recipe.length){
+      return {ok:false, missing:[{name:item?item.name:itemId, needed:qty, have:0}], needs:[]};
+    }
+    item.recipe.forEach(function(ing){ needs[ing.itemId] = (needs[ing.itemId]||0) + ing.qty*qty; });
+    var missing = [];
+    Object.keys(needs).forEach(function(id){
+      var mat = getItem(id);
+      var have = mat ? mat.quantity : 0;
+      if (have < needs[id]) missing.push({name: mat?mat.name:id, needed:needs[id], have:have});
+    });
+    var needsArr = Object.keys(needs).map(function(id){ return {itemId:id, qty:needs[id]}; });
+    return {ok: missing.length===0, missing:missing, needs:needsArr};
+  }
+  async function consumeMaterials(needsArr){
+    for (var i=0;i<needsArr.length;i++){
+      var n = needsArr[i];
+      var ref = db.collection('stock').doc(n.itemId);
+      var snap = await ref.get();
+      var cur = snap.exists ? (snap.data().quantity||0) : 0;
+      await ref.set({quantity: Math.max(0, cur - n.qty)});
+    }
+  }
+  async function increaseStock(itemId, qty){
+    var ref = db.collection('stock').doc(itemId);
+    var snap = await ref.get();
+    var cur = snap.exists ? (snap.data().quantity||0) : 0;
+    await ref.set({quantity: cur + qty});
+  }
+  async function decreaseStock(itemId, qty){
+    var ref = db.collection('stock').doc(itemId);
+    var snap = await ref.get();
+    var cur = snap.exists ? (snap.data().quantity||0) : 0;
+    await ref.set({quantity: Math.max(0, cur - qty)});
+  }
+
+  /* ---------------- rendering ---------------- */
+  function renderAll(){
+    renderFacturationSelect();
+    renderFabricationSelects();
+    renderStock();
+    renderAdmin();
+    renderDashboard();
+    renderFabrication();
+    renderInvoiceLines();
+    renderTaxe();
+  }
+
+  function itemOptionsHtml(filterFn){
+    return allItemsArr()
+      .filter(function(it){ return filterFn ? filterFn(it) : true; })
+      .sort(function(a,b){ return a.name.localeCompare(b.name); })
+      .map(function(it){ return '<option value="'+esc(it.id)+'">'+esc(it.name)+'</option>'; })
+      .join('');
+  }
+
+  function renderFacturationSelect(){
+    var sel = document.getElementById('fa-item');
+    var prev = sel.value;
+    sel.innerHTML = itemOptionsHtml(function(it){ return it.vendable; });
+    if (prev) sel.value = prev;
+    updateFaRecipePreview();
+  }
+
+  function updateFaRecipePreview(){
+    var id = document.getElementById('fa-item').value;
+    var qty = parseInt(document.getElementById('fa-qty').value,10) || 1;
+    var box = document.getElementById('fa-recipe-preview');
+    if (!box) return;
+    var item = getItem(id);
+    if (!item){ box.textContent=''; return; }
+    var fromStock = Math.min(item.quantity||0, qty);
+    var remaining = qty - fromStock;
+    if (remaining<=0){
+      box.textContent = 'En stock ('+item.quantity+' disponible'+(item.quantity>1?'s':'')+').';
+      return;
+    }
+    if (!item.recipe || !item.recipe.length){
+      box.textContent = 'Stock insuffisant : '+item.quantity+' disponible'+(item.quantity>1?'s':'')+' sur '+qty+' demandé'+(qty>1?'s':'')+'.';
+      return;
+    }
+    var parts = item.recipe.map(function(ing){
+      var mat = getItem(ing.itemId);
+      return (ing.qty*remaining)+' '+(mat?mat.name.toLowerCase():ing.itemId);
+    });
+    box.textContent = (fromStock>0 ? fromStock+' déjà en stock, le reste sera fabriqué : ' : 'Sera fabriqué à la vente : ')+parts.join(', ');
+  }
+
+  function renderFabricationSelects(){
+    var fab = document.getElementById('fab-item');
+    var prevFab = fab.value;
+    fab.innerHTML = itemOptionsHtml(function(it){ return it.recipe && it.recipe.length; });
+    if (prevFab) fab.value = prevFab;
+    updateRecipePreview();
+
+    var req = document.getElementById('req-item');
+    var prevReq = req.value;
+    req.innerHTML = itemOptionsHtml(null);
+    if (prevReq) req.value = prevReq;
+  }
+
+  function updateRecipePreview(){
+    var id = document.getElementById('fab-item').value;
+    var qty = parseInt(document.getElementById('fab-qty').value,10) || 1;
+    var box = document.getElementById('fab-recipe-preview');
+    var item = getItem(id);
+    if (!item || !item.recipe || !item.recipe.length){ box.textContent=''; return; }
+    var parts = item.recipe.map(function(ing){
+      var mat = getItem(ing.itemId);
+      return (ing.qty*qty)+' '+(mat?mat.name.toLowerCase():ing.itemId);
+    });
+    box.textContent = 'Nécessite : '+parts.join(', ');
+  }
+
+  function statusBadge(status){
+    if (status==='stock') return '<span class="badge stock">Stock</span>';
+    if (status==='fabricable') return '<span class="badge fabricable">Fabricable</span>';
+    return '<span class="badge manque">Manque</span>';
+  }
+
+  function evaluateLine(itemId, qty){
+    var item = getItem(itemId);
+    if (!item) return {status:'manque'};
+    var fromStock = Math.min(item.quantity||0, qty);
+    var remaining = qty - fromStock;
+    if (remaining === 0) return {status:'stock'};
+    if (item.recipe && item.recipe.length){
+      var check = computeNeeds(itemId, remaining);
+      return {status: check.ok ? 'fabricable' : 'manque'};
+    }
+    return {status:'manque'};
+  }
+
+  function renderInvoiceLines(){
+    var tbody = document.getElementById('fa-lines');
+    var empty = document.getElementById('fa-empty');
+    var tarif = document.getElementById('fa-tarif').value;
+    var rate = tarif==='garde' ? 0.10 : (tarif==='citoyen' ? 0.05 : 0);
+    var grossTotal = 0;
+    if (!currentInvoiceLines.length){
+      tbody.innerHTML=''; empty.style.display='block';
+      document.getElementById('fa-total').textContent = '0';
+      document.getElementById('fa-discount-line').style.display='none';
+      document.getElementById('fa-validate').disabled = true;
+      return;
+    }
+    empty.style.display='none';
+    tbody.innerHTML = currentInvoiceLines.map(function(line, idx){
+      var item = getItem(line.itemId);
+      var price = item ? (item.sellPrice||0) : 0;
+      var gross = price*line.qty;
+      grossTotal += gross;
+      var net = gross * (1-rate);
+      var evalRes = evaluateLine(line.itemId, line.qty);
+      return '<tr><td>'+esc(item?item.name:line.itemId)+'</td>'+
+        '<td class="num-cell">'+line.qty+'</td>'+
+        '<td class="num-cell">'+fmtNum(net)+'</td>'+
+        '<td>'+statusBadge(evalRes.status)+'</td>'+
+        '<td><button class="btn-ghost btn-sm" data-remove="'+idx+'" title="Retirer">&times;</button></td></tr>';
+    }).join('');
+    var netTotal = grossTotal * (1-rate);
+    var discountLine = document.getElementById('fa-discount-line');
+    if (rate>0){
+      discountLine.style.display='block';
+      discountLine.textContent = 'Prix d\'origine : '+fmtNum(grossTotal)+' septims — remise '+Math.round(rate*100)+'% ('+(tarif==='garde'?'Garde du Comté':'Citoyen de Bruma')+') déjà déduite ci-dessus';
+    } else {
+      discountLine.style.display='none';
+    }
+    document.getElementById('fa-total').textContent = fmtNum(netTotal);
+    document.getElementById('fa-validate').disabled = false;
+  }
+
+  function renderServiceHistory(){
+    var box = document.getElementById('svc-histo-body');
+    if (!box) return;
+    if (!serviceLogs.length){ box.innerHTML = '<div class="empty">Aucun service terminé pour le moment.</div>'; return; }
+    var byForgeron = {};
+    serviceLogs.forEach(function(log){
+      var key = log.forgeron || 'Inconnu';
+      (byForgeron[key] = byForgeron[key]||[]).push(log);
+    });
+    var names = Object.keys(byForgeron).sort(function(a,b){ return a.localeCompare(b); });
+    box.innerHTML = names.map(function(name){
+      var logs = byForgeron[name];
+      var totalVentes = logs.reduce(function(s,l){ return s+(l.ventes||0); }, 0);
+      var totalGarder = logs.reduce(function(s,l){ return s+(l.garder||0); }, 0);
+      var totalDeposer = logs.reduce(function(s,l){ return s+(l.deposer||0); }, 0);
+      var rows = logs.map(function(l){
+        var d = l.endedAt ? new Date(l.endedAt) : null;
+        var dateTxt = d ? d.toLocaleDateString('fr-FR',{day:'numeric',month:'short'})+' à '+d.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}) : '—';
+        return '<tr><td>'+esc(dateTxt)+'</td><td class="num-cell">'+fmtNum(l.ventes||0)+'</td>'+
+          '<td class="num-cell">'+fmtNum(l.deposer||0)+'</td>'+
+          '<td class="num-cell" style="color:var(--ember);">'+fmtNum(l.garder||0)+'</td></tr>';
+      }).join('');
+      return '<div class="hist-day-head"><h4>'+esc(name)+'</h4><span>'+logs.length+' service'+(logs.length===1?'':'s')+' &middot; '+fmtNum(totalVentes)+' septims de ventes au total</span></div>'+
+        '<table><thead><tr><th>Fin de service</th><th class="num-cell">Ventes</th><th class="num-cell">Déposé (coffre)</th><th class="num-cell">Gardé</th></tr></thead>'+
+        '<tbody>'+rows+'</tbody>'+
+        '<tfoot><tr style="font-weight:600;"><td>Total</td><td class="num-cell">'+fmtNum(totalVentes)+'</td><td class="num-cell">'+fmtNum(totalDeposer)+'</td><td class="num-cell" style="color:var(--ember);">'+fmtNum(totalGarder)+'</td></tr></tfoot>'+
+        '</table>';
+    }).join('');
+  }
+
+  function renderService(){
+    var btn = document.getElementById('svc-toggle');
+    if (!btn) return;
+    var myKey = currentForgeron ? slugify(currentForgeron) : null;
+    var mine = myKey ? sessions.get(myKey) : null;
+    mySessionActive = !!(mine && mine.active);
+    mySessionStart = mine ? mine.startedAt : null;
+    btn.classList.toggle('is-active', mySessionActive);
+    btn.textContent = mySessionActive ? 'Terminer le service' : 'Se mettre en service';
+    var statusText = document.getElementById('svc-status-text');
+    statusText.textContent = mySessionActive && mySessionStart
+      ? ('En service depuis '+new Date(mySessionStart).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}))
+      : 'Hors service';
+
+    var activeList = Array.from(sessions.values()).filter(function(s){ return s.active; });
+    var box = document.getElementById('svc-active-list');
+    if (!activeList.length){ box.innerHTML = ''; return; }
+    box.innerHTML = '<div class="card"><div class="label" style="margin-bottom:8px;">Actuellement en service</div>'+
+      activeList.map(function(s){ return '<span class="badge stock" style="margin-right:6px;">'+esc(s.forgeron)+'</span>'; }).join('')+
+      '</div>';
+  }
+
+  function showRecapModal(ventes, garder, deposer){
+    showModal(
+      '<h3 style="font-size:16px;">Récapitulatif de service</h3>'+
+      '<p style="font-size:13px; color:var(--parchment-dim); margin-top:2px;">Ventes réalisées pendant ce service.</p>'+
+      '<table style="margin-top:12px;"><tbody>'+
+        '<tr><td>Ventes totales</td><td class="num-cell">'+fmtNum(ventes)+' septims</td></tr>'+
+        '<tr><td>À déposer au coffre (90%)</td><td class="num-cell">'+fmtNum(deposer)+' septims</td></tr>'+
+        '<tr><td>À garder sur toi (10%)</td><td class="num-cell" style="color:var(--ember);">'+fmtNum(garder)+' septims</td></tr>'+
+      '</tbody></table>'+
+      '<div style="display:flex; justify-content:flex-end; margin-top:16px;"><button class="btn btn-primary" id="generic-modal-ok">Fermer</button></div>'
+    );
+    document.getElementById('generic-modal-ok').onclick = hideModal;
+  }
+
+  function renderDashboard(){
+    var count = invoicesToday.length;
+    var septims = invoicesToday.reduce(function(s,inv){ return s + (inv.total||0); }, 0);
+    document.getElementById('stat-ventes').innerHTML = count + '<small>facture'+(count===1?'':'s')+'</small>';
+    document.getElementById('stat-septims').textContent = fmtNum(septims);
+
+    var rachatTotal = achatsToday.reduce(function(s,a){ return s + (a.total||0); }, 0);
+    document.getElementById('stat-rachats').innerHTML = fmtNum(rachatTotal) + '<small>'+achatsToday.length+' opér.</small>';
+
+    var lowStock = allItemsArr().filter(function(it){
+      var threshold = it.category==='objet' ? 2 : 4;
+      return (it.quantity||0) <= threshold;
+    });
+    document.getElementById('stat-alertes').textContent = lowStock.length;
+
+    var openReq = Array.from(requests.values()).filter(function(r){ return r.status!=='done'; });
+    document.getElementById('stat-requetes').textContent = openReq.length;
+
+    var alertBox = document.getElementById('dash-alerts');
+    if (!lowStock.length){
+      alertBox.innerHTML = '<div class="empty">Tous les stocks sont à un niveau correct.</div>';
+    } else {
+      alertBox.innerHTML = '<table><thead><tr><th>Article</th><th>Catégorie</th><th class="num-cell">Quantité</th></tr></thead><tbody>'+
+        lowStock.sort(function(a,b){return a.quantity-b.quantity;}).map(function(it){
+          return '<tr><td>'+esc(it.name)+'</td><td>'+CATS[it.category]+'</td><td class="num-cell">'+it.quantity+' '+esc(it.unit||'')+'</td></tr>';
+        }).join('')+'</tbody></table>';
+    }
+  }
+
+  function renderHistorique(){
+    var box = document.getElementById('hist-body');
+    if (!allInvoices.length){ box.innerHTML = '<div class="empty">Aucune facture enregistrée pour le moment.</div>'; return; }
+    var byDay = {};
+    allInvoices.forEach(function(inv){
+      var key = inv.dateKey || todayKey(new Date(inv.createdAt||Date.now()));
+      (byDay[key] = byDay[key]||[]).push(inv);
+    });
+    var days = Object.keys(byDay).sort().reverse();
+    box.innerHTML = days.map(function(day){
+      var invs = byDay[day];
+      var dayTotal = invs.reduce(function(s,i){ return s+(i.total||0); }, 0);
+      var rows = invs.map(function(inv){
+        var time = inv.createdAt ? new Date(inv.createdAt).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}) : '';
+        var tarifTxt = inv.tarif==='garde' ? 'Garde -10%' : (inv.tarif==='citoyen' ? 'Citoyen -5%' : '—');
+        var lines = inv.lines || [];
+        var produitTxt, qteTxt;
+        if (lines.length <= 1){
+          produitTxt = lines.length ? esc(lines[0].name) : '—';
+          qteTxt = lines.length ? lines[0].qty : '—';
+        } else {
+          produitTxt = lines.map(function(l){ return esc(l.name)+' &times;'+l.qty; }).join(', ');
+          qteTxt = lines.reduce(function(s,l){ return s+l.qty; }, 0);
+        }
+        return '<tr><td>'+esc(time)+'</td><td>'+esc(inv.seller||'—')+'</td><td>'+esc(inv.client||'Anonyme')+'</td>'+
+          '<td>'+produitTxt+'</td><td class="num-cell">'+qteTxt+'</td>'+
+          '<td class="num-cell">'+fmtNum(inv.total||0)+'</td>'+
+          '<td style="font-size:12px; color:var(--parchment-dim);">'+tarifTxt+'</td></tr>';
+      });
+      var dateLabel = new Date(day+'T00:00:00').toLocaleDateString('fr-FR', {weekday:'long', day:'numeric', month:'long'});
+      return '<div class="hist-day-head"><h4>'+esc(dateLabel)+'</h4><span>'+invs.length+' facture'+(invs.length===1?'':'s')+' &middot; '+fmtNum(dayTotal)+' septims</span></div>'+
+        '<table><thead><tr><th>Heure</th><th>Forgeron</th><th>Client</th><th>Produit(s)</th><th class="num-cell">Qté</th><th class="num-cell">Total</th><th>Tarif</th></tr></thead>'+
+        '<tbody>'+rows.join('')+'</tbody></table>';
+    }).join('');
+  }
+
+  function weekInvoices(){
+    var start = weekKeyFor(currentWeekMonday);
+    var end = todayKey(addDays(currentWeekMonday,6));
+    return allInvoices.filter(function(inv){ return inv.dateKey >= start && inv.dateKey <= end; });
+  }
+  function weekAchats(){
+    var start = weekKeyFor(currentWeekMonday);
+    var end = todayKey(addDays(currentWeekMonday,6));
+    return allAchats.filter(function(a){ return a.dateKey >= start && a.dateKey <= end; });
+  }
+
+  function renderTaxe(){
+    var labelEl = document.getElementById('tx-week-label');
+    if (!labelEl) return;
+    labelEl.textContent = formatWeekLabel(currentWeekMonday);
+
+    document.getElementById('tx-secteur').value = taxData.sector;
+    var patente = PATENTE_RATES[taxData.sector] || 0;
+    document.getElementById('tx-patente-amount').textContent = fmtNum(patente);
+
+    var wInv = weekInvoices();
+    var wAch = weekAchats();
+    var ventes = wInv.reduce(function(s,i){ return s+(i.total||0); }, 0);
+    var rachats = wAch.reduce(function(s,a){ return s+(a.total||0); }, 0);
+    var beneficeAuto = Math.max(0, ventes - rachats);
+    document.getElementById('tx-ventes').textContent = fmtNum(ventes);
+    document.getElementById('tx-rachats').textContent = fmtNum(rachats);
+
+    document.getElementById('tx-override-toggle').checked = taxData.overrideOn;
+    document.getElementById('tx-override-wrap').style.display = taxData.overrideOn ? 'block' : 'none';
+    if (taxData.overrideOn && document.activeElement !== document.getElementById('tx-override-value')){
+      document.getElementById('tx-override-value').value = taxData.overrideValue;
+    }
+    var benefice = taxData.overrideOn ? (taxData.overrideValue||0) : beneficeAuto;
+    document.getElementById('tx-benefice').textContent = fmtNum(benefice);
+
+    var calc = computeProgressiveTax(benefice);
+    document.getElementById('tx-brackets').innerHTML = calc.rows.map(function(r, idx){
+      var maxLabel = r.max===Infinity ? (r.min+1)+' et +' : (idx===0 ? '0' : (r.min+1))+' à '+r.max;
+      return '<tr><td>'+maxLabel+' Septims</td><td class="num-cell">'+Math.round(r.rate*100)+'%</td>'+
+        '<td class="num-cell">'+fmtNum(r.taxable)+'</td><td class="num-cell">'+fmtNum(r.amount)+'</td></tr>';
+    }).join('');
+    document.getElementById('tx-impot-total').textContent = fmtNum(calc.total);
+
+    var tarifActive = wInv.some(function(i){ return i.tarif; });
+    document.getElementById('tx-lever-tarif-badge').textContent = tarifActive ? 'Actif' : 'Inactif';
+    document.getElementById('tx-lever-tarif-badge').style.background = tarifActive ? 'var(--success-bg)' : 'var(--panel-raised)';
+    document.getElementById('tx-lever-tarif-badge').style.color = tarifActive ? 'var(--success)' : 'var(--parchment-dim)';
+
+    var activeCount = (tarifActive?1:0) + (taxData.sponsor?1:0) + (taxData.donation?1:0);
+    var sponsorBox = document.getElementById('tx-lever-sponsor');
+    var donationBox = document.getElementById('tx-lever-donation');
+    sponsorBox.checked = taxData.sponsor;
+    donationBox.checked = taxData.donation;
+    sponsorBox.disabled = !taxData.sponsor && activeCount>=2;
+    donationBox.disabled = !taxData.donation && activeCount>=2;
+
+    var leverRates = [];
+    if (taxData.sponsor) leverRates.push(0.05);
+    if (taxData.donation) leverRates.push(0.15);
+    if (tarifActive) leverRates.push(0.10);
+    var remaining = 1;
+    leverRates.forEach(function(r){ remaining *= (1-r); });
+    var reductionPct = (1-remaining)*100;
+    document.getElementById('tx-reduction-pct').textContent = (Math.round(reductionPct*10)/10)+'%';
+
+    var subtotal = patente + calc.total;
+    var reductionAmount = subtotal * (1-remaining);
+    var totalDue = subtotal - reductionAmount;
+    document.getElementById('tx-sum-patente').textContent = fmtNum(patente);
+    document.getElementById('tx-sum-impot').textContent = fmtNum(calc.total);
+    document.getElementById('tx-sum-subtotal').textContent = fmtNum(subtotal);
+    document.getElementById('tx-sum-reduction').textContent = '-'+fmtNum(reductionAmount);
+    document.getElementById('tx-sum-total').textContent = fmtNum(Math.round(totalDue));
+    var payBtn = document.getElementById('tx-paid-btn');
+    payBtn.classList.toggle('is-paid', taxData.paid);
+    payBtn.textContent = taxData.paid ? 'Taxe payée' : 'Taxe réglée';
+  }
+
+  function renderFabrication(){
+    var box = document.getElementById('fab-requests');
+    var list = Array.from(requests.entries());
+    if (!list.length){ box.innerHTML = '<div class="empty">Aucune requête ouverte pour le moment.</div>'; return; }
+    box.innerHTML = list.map(function(e){
+      var id = e[0], r = e[1];
+      var item = getItem(r.itemId);
+      var pct = Math.min(100, Math.round(100*(r.currentQty||0)/(r.targetQty||1)));
+      var done = (r.currentQty||0) >= (r.targetQty||0);
+      return '<div class="card" style="margin-bottom:12px;">'+
+        '<div style="display:flex; justify-content:space-between; align-items:baseline; gap:12px;">'+
+          '<strong>'+esc(r.title || ('Requête : '+(item?item.name:r.itemId)))+'</strong>'+
+          (done ? '<span class="badge stock">Terminée</span>' : '<span class="badge neutral">'+(r.currentQty||0)+' / '+r.targetQty+'</span>')+
+        '</div>'+
+        '<div style="font-size:12.5px; color:var(--parchment-dim); margin-top:2px;">'+esc(item?item.name:r.itemId)+'</div>'+
+        '<div class="progress"><span style="width:'+pct+'%"></span></div>'+
+        (done ? '' :
+          '<div class="row" style="margin-top:10px; align-items:flex-end;">'+
+            '<div class="field" style="margin:0; flex:0 0 110px;"><label>Contribuer</label><input type="number" min="1" value="1" class="req-contrib-qty" data-req="'+esc(id)+'"></div>'+
+            '<button class="btn btn-sm" data-contribute="'+esc(id)+'">Fabriquer pour la requête</button>'+
+          '</div>')+
+        '</div>';
+    }).join('');
+  }
+
+  function stockRowsHtml(category, mode){
+    var list = allItemsArr().filter(function(it){ return it.category===category; })
+      .sort(function(a,b){ return a.name.localeCompare(b.name); });
+    if (!list.length) return '<div class="empty">Aucun article dans cette catégorie.</div>';
+    var showPrice = category==='objet';
+
+    if (mode === 'admin'){
+      return '<table><thead><tr><th>Nom</th><th class="num-cell">Quantité</th>'+
+        (showPrice?'<th class="num-cell">Prix vente</th>':'')+
+        '<th class="num-cell">Prix rachat</th><th>Recette</th><th></th></tr></thead><tbody>'+
+        list.map(function(it){
+          var recipeTxt = (it.recipe&&it.recipe.length) ? it.recipe.map(function(ing){
+            var m = getItem(ing.itemId);
+            return ing.qty+'&times; '+esc(m?m.name:ing.itemId);
+          }).join(', ') : '<span style="color:var(--parchment-dim)">&mdash;</span>';
+          return '<tr><td>'+esc(it.name)+'</td>'+
+            '<td class="num-cell">'+it.quantity+' '+esc(it.unit||'')+'</td>'+
+            (showPrice?'<td class="num-cell">'+fmtNum(it.sellPrice||0)+'</td>':'')+
+            '<td class="num-cell">'+fmtNum(it.buyPrice||0)+'</td>'+
+            '<td style="font-size:12.5px; color:var(--parchment-dim);">'+recipeTxt+'</td>'+
+            '<td style="white-space:nowrap;">'+
+              '<button class="btn-ghost btn-sm" data-edit="'+esc(it.id)+'" title="Modifier">&#9998;</button>'+
+              '<button class="btn-ghost btn-sm" data-delete="'+esc(it.id)+'" title="Supprimer">&times;</button>'+
+            '</td></tr>';
+        }).join('')+'</tbody></table>';
+    }
+
+    return '<table><thead><tr><th>Nom</th><th class="num-cell">Quantité</th>'+
+      (showPrice?'<th class="num-cell">Prix</th>':'')+
+      '<th></th></tr></thead><tbody>'+
+      list.map(function(it){
+        var canBuyback = (it.buyPrice||0) > 0;
+        var canAdjust = canAdjustStock();
+        return '<tr><td>'+esc(it.name)+'</td>'+
+          '<td class="num-cell">'+it.quantity+' '+esc(it.unit||'')+'</td>'+
+          (showPrice?'<td class="num-cell">'+fmtNum(it.sellPrice||0)+'</td>':'')+
+          '<td style="white-space:nowrap;">'+
+            (canAdjust ? '<button class="btn-ghost btn-sm" data-adjust="'+esc(it.id)+'" title="Ajuster la quantité">&plusmn;</button>' : '')+
+            (canBuyback ? '<button class="btn-ghost btn-sm" data-buyback="'+esc(it.id)+'" title="Racheter">Racheter</button>' : '')+
+          '</td></tr>';
+      }).join('')+'</tbody></table>';
+  }
+
+  function renderStock(){
+    document.getElementById('stock-materiau').innerHTML = stockRowsHtml('materiau','normal');
+    document.getElementById('stock-transforme').innerHTML = stockRowsHtml('transforme','normal');
+    document.getElementById('stock-objet').innerHTML = stockRowsHtml('objet','normal');
+  }
+
+  function renderAdmin(){
+    if (!isAdmin) return;
+    document.getElementById('admin-materiau').innerHTML = stockRowsHtml('materiau','admin');
+    document.getElementById('admin-transforme').innerHTML = stockRowsHtml('transforme','admin');
+    document.getElementById('admin-objet').innerHTML = stockRowsHtml('objet','admin');
+    populateRecipeIngredientOptions();
+  }
+
+  /* ---------------- admin form (add / edit) ---------------- */
+  function populateRecipeIngredientOptions(){
+    document.querySelectorAll('#si-recipe-rows .item-line select').forEach(function(sel){
+      var prev = sel.value;
+      sel.innerHTML = itemOptionsHtml(null);
+      if (prev) sel.value = prev;
+    });
+  }
+  function addRecipeRow(itemId, qty){
+    var wrap = document.getElementById('si-recipe-rows');
+    var row = document.createElement('div');
+    row.className = 'item-line';
+    row.innerHTML = '<select>'+itemOptionsHtml(null)+'</select>'+
+      '<input type="number" min="1" value="'+(qty||1)+'">'+
+      '<button class="btn-ghost btn-sm" type="button" data-remove-row>&times;</button>';
+    wrap.appendChild(row);
+    if (itemId) row.querySelector('select').value = itemId;
+    row.querySelector('[data-remove-row]').addEventListener('click', function(){ row.remove(); });
+  }
+
+  function openAdminForm(itemId){
+    editingItemId = itemId || null;
+    document.getElementById('admin-form-wrap').style.display = 'block';
+    document.getElementById('admin-form-title').textContent = itemId ? "Modifier l'article" : 'Nouvel article';
+    document.getElementById('si-recipe-rows').innerHTML = '';
+    if (itemId){
+      var it = getItem(itemId);
+      document.getElementById('si-name').value = it.name;
+      document.getElementById('si-category').value = it.category;
+      document.getElementById('si-unit').value = it.unit||'';
+      document.getElementById('si-vendable').value = it.vendable ? '1':'0';
+      document.getElementById('si-price').value = it.sellPrice||0;
+      document.getElementById('si-buyprice').value = it.buyPrice||0;
+      (it.recipe||[]).forEach(function(ing){ addRecipeRow(ing.itemId, ing.qty); });
+    } else {
+      document.getElementById('si-name').value='';
+      document.getElementById('si-category').value='materiau';
+      document.getElementById('si-unit').value='unité';
+      document.getElementById('si-vendable').value='0';
+      document.getElementById('si-price').value=0;
+      document.getElementById('si-buyprice').value=0;
+    }
+    toggleVendableFields();
+    document.getElementById('admin-form-wrap').scrollIntoView({behavior:'smooth', block:'nearest'});
+  }
+  function closeAdminForm(){
+    document.getElementById('admin-form-wrap').style.display='none';
+    editingItemId = null;
+  }
+  function toggleVendableFields(){
+    var v = document.getElementById('si-vendable').value === '1';
+    document.getElementById('si-price-wrap').style.display = v ? 'block':'none';
+  }
+
+  async function saveAdminForm(){
+    var name = document.getElementById('si-name').value.trim();
+    if (!name){ toast('Le nom est requis.', 'error'); return; }
+    var category = document.getElementById('si-category').value;
+    var unit = document.getElementById('si-unit').value.trim() || 'unité';
+    var vendable = document.getElementById('si-vendable').value === '1';
+    var sellPrice = parseFloat(document.getElementById('si-price').value) || 0;
+    var buyPrice = parseFloat(document.getElementById('si-buyprice').value) || 0;
+
+    var recipe = [];
+    document.querySelectorAll('#si-recipe-rows .item-line').forEach(function(row){
+      var sel = row.querySelector('select'), inp = row.querySelector('input');
+      if (sel && sel.value){ recipe.push({itemId: sel.value, qty: parseFloat(inp.value)||1}); }
+    });
+
+    var data = {name:name, category:category, unit:unit, vendable:vendable, sellPrice:sellPrice, buyPrice:buyPrice, recipe:recipe};
+    var isNew = !editingItemId;
+    var id = editingItemId || (slugify(name) + (catalog.has(slugify(name)) ? '-'+Date.now().toString(36).slice(-4) : ''));
+
+    try{
+      await db.collection('items').doc(id).set(data);
+      if (isNew) await db.collection('stock').doc(id).set({quantity:0});
+      toast('Article enregistré.', 'success');
+      closeAdminForm();
+    } catch(e){
+      if (e && e.code === 'invalid_argument'){ toast("Action réservée aux administrateurs.", 'error'); }
+      else toast("Échec de l'enregistrement : "+e.message, 'error');
+    }
+  }
+
+  /* ---------------- events ---------------- */
+  function switchView(name){
+    document.querySelectorAll('.navlink').forEach(function(b){ b.classList.toggle('active', b.dataset.view===name); });
+    document.querySelectorAll('.view').forEach(function(v){ v.classList.toggle('active', v.id==='view-'+name); });
+  }
+
+  document.getElementById('nav').addEventListener('click', function(e){
+    var btn = e.target.closest('.navlink');
+    if (btn && !btn.hidden) switchView(btn.dataset.view);
+  });
+
+  document.getElementById('fa-add').addEventListener('click', function(){
+    var id = document.getElementById('fa-item').value;
+    var qty = parseInt(document.getElementById('fa-qty').value,10) || 1;
+    if (!id) return;
+    var existing = currentInvoiceLines.find(function(l){ return l.itemId===id; });
+    if (existing) existing.qty += qty; else currentInvoiceLines.push({itemId:id, qty:qty});
+    renderInvoiceLines();
+  });
+  document.getElementById('fa-tarif').addEventListener('change', renderInvoiceLines);
+  document.getElementById('fa-item').addEventListener('change', updateFaRecipePreview);
+  document.getElementById('fa-qty').addEventListener('input', updateFaRecipePreview);
+
+  document.getElementById('fa-lines').addEventListener('click', function(e){
+    var btn = e.target.closest('[data-remove]');
+    if (!btn) return;
+    currentInvoiceLines.splice(parseInt(btn.dataset.remove,10),1);
+    renderInvoiceLines();
+  });
+
+  document.getElementById('fa-validate').addEventListener('click', async function(){
+    if (!currentInvoiceLines.length || !db) return;
+    this.disabled = true;
+    var client = document.getElementById('fa-client').value.trim();
+    var seller = document.getElementById('fa-forgeron').value.trim();
+    var tarif = document.getElementById('fa-tarif').value || null;
+    var rate = tarif==='garde' ? 0.10 : (tarif==='citoyen' ? 0.05 : 0);
+
+    var plan = []; var anyMissing=false; var grossTotal=0;
+    var stockSummary = {}; var materialSummary = {};
+
+    for (var i=0;i<currentInvoiceLines.length;i++){
+      var l = currentInvoiceLines[i];
+      var item = getItem(l.itemId);
+      if (!item) continue;
+      var fromStock = Math.min(item.quantity||0, l.qty);
+      var remaining = l.qty - fromStock;
+      var status = 'stock'; var needs = [];
+      if (remaining > 0){
+        if (item.recipe && item.recipe.length){
+          var check = computeNeeds(l.itemId, remaining);
+          if (check.ok){ status='fabricable'; needs = check.needs; }
+          else { status='manque'; anyMissing=true; }
+        } else { status='manque'; anyMissing=true; }
+      }
+      if (fromStock>0) stockSummary[l.itemId] = (stockSummary[l.itemId]||0) + fromStock;
+      needs.forEach(function(n){ materialSummary[n.itemId] = (materialSummary[n.itemId]||0) + n.qty; });
+      grossTotal += (item.sellPrice||0) * l.qty;
+      plan.push({itemId:l.itemId, name:item.name, qty:l.qty, unitPrice:item.sellPrice||0, status:status, fromStock:fromStock, needs:needs});
+    }
+
+    var parts = [];
+    var stockKeys = Object.keys(stockSummary);
+    if (stockKeys.length){
+      parts.push('Depuis le stock : '+stockKeys.map(function(id){ var it=getItem(id); return stockSummary[id]+' × '+(it?it.name:id); }).join(', '));
+    }
+    var matKeys = Object.keys(materialSummary);
+    if (matKeys.length){
+      parts.push('Matériaux consommés pour la fabrication : '+matKeys.map(function(id){ var it=getItem(id); return materialSummary[id]+' '+(it?it.name.toLowerCase():id); }).join(', '));
+    }
+    if (anyMissing){
+      parts.push('Attention : certaines quantités ne pourront pas être honorées faute de ressources, et resteront en attente.');
+    }
+    if (!parts.length) parts.push('Aucune ressource ne sera déduite du stock.');
+
+    var ok = await askConfirm('Confirmer la vente', parts.join('\n\n'));
+    if (!ok){ this.disabled = false; return; }
+
+    for (var j=0;j<plan.length;j++){
+      var p = plan[j];
+      if (p.needs && p.needs.length) await consumeMaterials(p.needs);
+      if (p.fromStock>0) await decreaseStock(p.itemId, p.fromStock);
+    }
+
+    var now = new Date();
+    var discountedTotal = Math.round(grossTotal * (1-rate) * 100) / 100;
+    try{
+      await db.collection('invoices').add({
+        client: client || null,
+        seller: seller || null,
+        lines: plan.map(function(p){ return {itemId:p.itemId, name:p.name, qty:p.qty, unitPrice:p.unitPrice, status:p.status}; }),
+        subtotal: grossTotal,
+        tarif: tarif,
+        discount: rate,
+        total: discountedTotal,
+        status: anyMissing ? 'en_attente' : 'complete',
+        dateKey: todayKey(now),
+        createdAt: now.toISOString()
+      });
+      toast('Facture enregistrée'+(anyMissing?' (en attente de fabrication).':'.'), anyMissing?'error':'success');
+      currentInvoiceLines = [];
+      document.getElementById('fa-client').value='';
+      document.getElementById('fa-tarif').value='';
+      renderInvoiceLines();
+    } catch(e){ toast('Échec de la facturation : '+e.message, 'error'); }
+    this.disabled = false;
+  });
+
+  document.getElementById('fa-change-identity').addEventListener('click', openIdentityModal);
+  document.getElementById('identity-save').addEventListener('click', saveIdentity);
+  document.getElementById('identity-skip').addEventListener('click', closeIdentityModal);
+  document.getElementById('identity-modal').addEventListener('click', function(e){
+    if (e.target.id === 'identity-modal') closeIdentityModal();
+  });
+
+  document.getElementById('fab-item').addEventListener('change', updateRecipePreview);
+  document.getElementById('fab-qty').addEventListener('input', updateRecipePreview);
+
+  document.getElementById('fab-craft').addEventListener('click', async function(){
+    var id = document.getElementById('fab-item').value;
+    var qty = parseInt(document.getElementById('fab-qty').value,10) || 1;
+    if (!id || !db) return;
+    var check = computeNeeds(id, qty);
+    if (!check.ok){
+      toast('Ressources manquantes : '+check.missing.map(function(m){return m.name+' ('+m.have+'/'+m.needed+')';}).join(', '), 'error');
+      return;
+    }
+    this.disabled = true;
+    try{
+      await consumeMaterials(check.needs);
+      await increaseStock(id, qty);
+      toast(qty+' '+getItem(id).name+' fabriqué(s).', 'success');
+    } catch(e){ toast('Échec : '+e.message, 'error'); }
+    this.disabled = false;
+  });
+
+  document.getElementById('req-create').addEventListener('click', async function(){
+    var itemId = document.getElementById('req-item').value;
+    var target = parseInt(document.getElementById('req-target').value,10) || 1;
+    var title = document.getElementById('req-title').value.trim();
+    if (!itemId || !db) return;
+    try{
+      await db.collection('requests').add({
+        itemId:itemId, title: title||null, targetQty:target, currentQty:0,
+        status:'open', createdAt: new Date().toISOString(), contributions:[]
+      });
+      toast('Requête créée.', 'success');
+      document.getElementById('req-title').value='';
+    } catch(e){ toast('Échec : '+e.message, 'error'); }
+  });
+
+  document.getElementById('fab-requests').addEventListener('click', async function(e){
+    var btn = e.target.closest('[data-contribute]');
+    if (!btn || !db) return;
+    var reqId = btn.dataset.contribute;
+    var req = requests.get(reqId);
+    if (!req) return;
+    var qtyInput = document.querySelector('.req-contrib-qty[data-req="'+CSS.escape(reqId)+'"]');
+    var qty = parseInt(qtyInput ? qtyInput.value : 1,10) || 1;
+    var check = computeNeeds(req.itemId, qty);
+    if (!check.ok){
+      toast('Ressources manquantes : '+check.missing.map(function(m){return m.name+' ('+m.have+'/'+m.needed+')';}).join(', '), 'error');
+      return;
+    }
+    btn.disabled = true;
+    try{
+      await consumeMaterials(check.needs);
+      await increaseStock(req.itemId, qty);
+      var ref = db.collection('requests').doc(reqId);
+      var snap = await ref.get();
+      var cur = snap.data();
+      var newQty = (cur.currentQty||0) + qty;
+      await ref.update({currentQty:newQty, status: newQty>=cur.targetQty ? 'done':'open'});
+      toast('Contribution enregistrée.', 'success');
+    } catch(e){ toast('Échec : '+e.message, 'error'); }
+    btn.disabled = false;
+  });
+
+  ['stock-materiau','stock-transforme','stock-objet'].forEach(function(elId){
+    document.getElementById(elId).addEventListener('click', async function(e){
+      var adjBtn = e.target.closest('[data-adjust]');
+      var buyBtn = e.target.closest('[data-buyback]');
+      if (adjBtn){
+        var id = adjBtn.dataset.adjust;
+        var it = getItem(id);
+        var n = await askNumber('Ajuster le stock', 'Nouvelle quantité pour « '+it.name+' »', it.quantity);
+        if (n===null) return;
+        if (isNaN(n) || n<0){ toast('Quantité invalide.','error'); return; }
+        try{ await db.collection('stock').doc(id).set({quantity:n}); toast('Stock mis à jour.','success'); }
+        catch(err){ toast('Échec : '+err.message,'error'); }
+      }
+      if (buyBtn){
+        var bid = buyBtn.dataset.buyback;
+        var bit = getItem(bid);
+        var q = await askNumber('Racheter', 'Quantité de « '+bit.name+' » à racheter, à '+fmtNum(bit.buyPrice)+' septims/unité', 1);
+        if (q===null) return;
+        if (isNaN(q) || q<=0){ toast('Quantité invalide.','error'); return; }
+        var total = q * (bit.buyPrice||0);
+        var ok = await askConfirm('Confirmer le rachat', 'Racheter '+q+' '+bit.name+' pour '+fmtNum(total)+' septims ?');
+        if (!ok) return;
+        try{
+          await increaseStock(bid, q);
+          await db.collection('achats').add({
+            itemId:bid, name:bit.name, qty:q, unitPrice:bit.buyPrice||0, total:total,
+            buyer: currentForgeron || null, dateKey: todayKey(), createdAt: new Date().toISOString()
+          });
+          toast('Rachat enregistré.', 'success');
+        } catch(err){ toast('Échec : '+err.message,'error'); }
+      }
+    });
+  });
+
+  document.getElementById('mf-search').addEventListener('input', async function(){
+    var q = this.value;
+    var userCap = await getUserCap();
+    var box = document.getElementById('mf-results');
+    if (!userCap || !userCap.search){ box.style.display='none'; return; }
+    var results = await userCap.search(q);
+    if (!results.length){ box.style.display='none'; box.innerHTML=''; return; }
+    box.innerHTML = results.map(function(p){
+      return '<div class="mf-result" data-uid="'+esc(p.id)+'" style="padding:8px 10px; cursor:pointer; font-size:13.5px;">'+esc(p.name||'Sans nom')+'</div>';
+    }).join('');
+    box.style.display='block';
+  });
+  document.getElementById('mf-results').addEventListener('click', async function(e){
+    var el = e.target.closest('.mf-result');
+    if (!el || !db) return;
+    try{
+      await db.collection('roles').doc(el.dataset.uid).set({addedAt: new Date().toISOString()});
+      toast('Ajouté comme Maître Forgeron.', 'success');
+    } catch(err){ toast('Échec : '+err.message, 'error'); }
+    document.getElementById('mf-search').value='';
+    document.getElementById('mf-results').style.display='none';
+    document.getElementById('mf-results').innerHTML='';
+  });
+  document.getElementById('mf-list').addEventListener('click', async function(e){
+    var btn = e.target.closest('[data-remove-mf]');
+    if (!btn || !db) return;
+    try{ await db.collection('roles').doc(btn.dataset.removeMf).delete(); toast('Retiré.', 'success'); }
+    catch(err){ toast('Échec : '+err.message, 'error'); }
+  });
+
+  document.getElementById('admin-new').addEventListener('click', function(){ openAdminForm(null); });
+  document.getElementById('si-cancel').addEventListener('click', closeAdminForm);
+  document.getElementById('si-save').addEventListener('click', saveAdminForm);
+  document.getElementById('si-vendable').addEventListener('change', toggleVendableFields);
+  document.getElementById('si-recipe-add').addEventListener('click', function(){ addRecipeRow(); });
+
+  ['admin-materiau','admin-transforme','admin-objet'].forEach(function(elId){
+    document.getElementById(elId).addEventListener('click', async function(e){
+      var editBtn = e.target.closest('[data-edit]');
+      var delBtn = e.target.closest('[data-delete]');
+      if (editBtn) openAdminForm(editBtn.dataset.edit);
+      if (delBtn){
+        var ok = await askConfirm('Supprimer cet article', 'Supprimer définitivement cet article du catalogue ?');
+        if (ok){
+          try{
+            await db.collection('items').doc(delBtn.dataset.delete).delete();
+            await db.collection('stock').doc(delBtn.dataset.delete).delete();
+            toast('Article supprimé.','success');
+          } catch(err){ toast('Échec : '+err.message,'error'); }
+        }
+      }
+    });
+  });
+
+  document.getElementById('svc-toggle').addEventListener('click', async function(){
+    if (!currentForgeron){ openIdentityModal(); return; }
+    var key = slugify(currentForgeron);
+    if (!mySessionActive){
+      try{
+        await db.collection('sessions').doc(key).set({
+          forgeron: currentForgeron, active:true, startedAt: new Date().toISOString(), uid: currentUid||null
+        });
+        toast('Tu es maintenant en service.', 'success');
+      } catch(e){ toast('Échec : '+e.message, 'error'); }
+    } else {
+      var ok = await askConfirm('Terminer le service', 'Clôturer ta session et afficher le récapitulatif de tes ventes ?');
+      if (!ok) return;
+      try{
+        var snap = await db.collection('invoices').where('seller','==', currentForgeron).get();
+        var ventes = 0;
+        snap.docs.forEach(function(d){
+          var data = d.data();
+          if (data.createdAt && mySessionStart && data.createdAt >= mySessionStart){ ventes += (data.total||0); }
+        });
+        var ventesRounded = Math.ceil(ventes);
+        var garder = Math.ceil(ventes*0.10);
+        var deposer = ventesRounded - garder;
+        var endedAt = new Date().toISOString();
+        await db.collection('sessions').doc(key).set({
+          forgeron: currentForgeron, active:false, startedAt:null, endedAt:endedAt, uid: currentUid||null
+        });
+        await db.collection('service_logs').add({
+          forgeron: currentForgeron, uid: currentUid||null,
+          startedAt: mySessionStart, endedAt: endedAt,
+          ventes: ventesRounded, garder: garder, deposer: deposer,
+          dateKey: todayKey()
+        });
+        showRecapModal(ventesRounded, garder, deposer);
+      } catch(e){ toast('Échec : '+e.message, 'error'); }
+    }
+  });
+
+  document.getElementById('stock-goto-fab').addEventListener('click', function(){ switchView('fabrication'); });
+
+  document.getElementById('tx-prev').addEventListener('click', function(){
+    currentWeekMonday = addDays(currentWeekMonday, -7);
+    subscribeTaxWeek();
+  });
+  document.getElementById('tx-next').addEventListener('click', function(){
+    currentWeekMonday = addDays(currentWeekMonday, 7);
+    subscribeTaxWeek();
+  });
+  document.getElementById('tx-today').addEventListener('click', function(){
+    currentWeekMonday = getMonday(new Date());
+    subscribeTaxWeek();
+  });
+  document.getElementById('tx-secteur').addEventListener('change', function(){
+    saveTaxField({sector:this.value});
+  });
+  document.getElementById('tx-override-toggle').addEventListener('change', function(){
+    saveTaxField({overrideOn:this.checked});
+  });
+  document.getElementById('tx-override-value').addEventListener('change', function(){
+    saveTaxField({overrideValue: parseFloat(this.value)||0});
+  });
+  document.getElementById('tx-lever-sponsor').addEventListener('change', function(){
+    saveTaxField({sponsor:this.checked});
+  });
+  document.getElementById('tx-lever-donation').addEventListener('change', function(){
+    saveTaxField({donation:this.checked});
+  });
+  document.getElementById('tx-paid-btn').addEventListener('click', async function(){
+    if (!taxData.paid){
+      var ok = await askConfirm('Confirmer le paiement', "Confirmes-tu que la taxe de cette semaine a bien été payée au Comté de Bruma ?");
+      if (ok) saveTaxField({paid:true});
+    } else {
+      var undo = await askConfirm('Annuler le paiement', 'Marquer cette taxe comme non réglée ?');
+      if (undo) saveTaxField({paid:false});
+    }
+  });
+
+  /* ---------------- clock ---------------- */
+  function tickClock(){
+    var el = document.getElementById('clock');
+    var now = new Date();
+    el.textContent = now.toLocaleDateString('fr-FR', {weekday:'long', day:'numeric', month:'long'}) + ' · ' +
+      now.toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'});
+  }
+  tickClock(); setInterval(tickClock, 30000);
+
+  /* ---------------- boot ---------------- */
+  switchView('dashboard');
+  initDb();
+
+})();
+</script>
+</body>
+</html>
